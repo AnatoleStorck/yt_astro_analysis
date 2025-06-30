@@ -154,9 +154,20 @@ class RockstarHaloFinder(ParallelAnalysisInterface):
         (<particle_type>, <mass_field>). This can be used to provide alternative
         particle masses for halo finding.
         Default: "particle_mass"
+    position_field : optional, str
+        The field to be used for the particle positions. The sampled field will be
+        (<particle_type>, <position_field>). This can be used to provide alternative
+        particle positions for halo finding.
+    velocity_field : optional, str
+        The field to be used for the particle velocities. The sampled field will be
+        (<particle_type>, <velocity_field>). This can be used to provide alternative
+        particle velocities for halo finding.
     star_types : str list/array
         The types (as returned by data((particle_type, particle_type)) to be
         recognized as star particles.
+    gas_types : str list/array
+        The types (as returned by data((particle_type, particle_type)) to be
+        recognized as gas particles.
     force_res : float
         This parameter specifies the force resolution that Rockstar uses
         in units of Mpccm/h (comoving Mpc/h).
@@ -197,6 +208,13 @@ class RockstarHaloFinder(ParallelAnalysisInterface):
         be convertible to units of Msun/h. To modify the masses of particles
         used for halo finding, see the mass_field keyword.
         Default: ``None``.
+    min_halo_size : int
+        The minimum number of particles in a halo for it to be included in the
+        output catalog. This is useful to filter out spurious halos that are
+        smaller than the minimum halo size. The default is 25 particles.
+    min_halo_mass : int
+        The minimum mass of a halo for it to be included in the output catalog.
+        Should be given in units of Msun/h. 
     restart : optional, bool
         Set to True to have rockstar restart from the first uncompleted
         snapshot. If False, rockstar will start at the first snapshot in the
@@ -231,7 +249,10 @@ class RockstarHaloFinder(ParallelAnalysisInterface):
         outbase="rockstar_halos",
         particle_type="all",
         mass_field="particle_mass",
+        position_field="particle_position",
+        velocity_field="particle_velocity",
         star_types=None,
+        gas_types=None,
         force_res=None,
         initial_metric_scaling=1.0,
         non_dm_metric_scaling=10.0,
@@ -240,6 +261,7 @@ class RockstarHaloFinder(ParallelAnalysisInterface):
         dm_only=False,
         particle_mass=None,
         min_halo_size=25,
+        min_halo_mass=0,
         restart=False,
     ):
         if is_root():
@@ -269,8 +291,12 @@ class RockstarHaloFinder(ParallelAnalysisInterface):
         if star_types is None:
             star_types = []
         self.star_types = star_types
+        if gas_types is None:
+            gas_types = []
+        self.gas_types = gas_types
         self.outbase = outbase
         self.min_halo_size = min_halo_size
+        self.min_halo_mass = min_halo_mass
         if force_res is None:
             tds = ts[-1]  # Cache a reference
             self.force_res = tds.index.get_smallest_dx().to("Mpccm/h")
@@ -285,6 +311,8 @@ class RockstarHaloFinder(ParallelAnalysisInterface):
         self.dm_only = dm_only
         self.particle_mass = particle_mass
         self.mass_field = mass_field
+        self.position_field = position_field
+        self.velocity_field = velocity_field
         # Setup pool and workgroups.
         self.pool, self.workgroup = self.runner.setup_pool()
         p = self._setup_parameters(ts)
@@ -395,7 +423,10 @@ class RockstarHaloFinder(ParallelAnalysisInterface):
             np.int64(self.total_particles),
             self.particle_type,
             self.mass_field,
+            self.position_field,
+            self.velocity_field,
             star_types=self.star_types,
+            gas_types=self.gas_types,
             particle_mass=self.particle_mass,
             parallel=self.comm.size > 1,
             num_readers=self.num_readers,
@@ -410,6 +441,7 @@ class RockstarHaloFinder(ParallelAnalysisInterface):
             callbacks=callbacks,
             restart_num=restart_num,
             min_halo_size=self.min_halo_size,
+            min_halo_mass=self.min_halo_mass,
         )
         # Make the directory to store the halo lists in.
         if not self.outbase:
