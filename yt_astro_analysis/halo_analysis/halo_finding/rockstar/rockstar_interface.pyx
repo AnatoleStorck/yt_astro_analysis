@@ -109,6 +109,7 @@ cdef import from "config_vars.h":
 
     char *MASS_DEFINITION
     np.int64_t MIN_HALO_OUTPUT_SIZE
+    np.int64_t MIN_HALO_OUTPUT_MASS
     np.float64_t FORCE_RES
     np.float64_t INITIAL_METRIC_SCALING
     np.float64_t NON_DM_METRIC_SCALING
@@ -281,8 +282,16 @@ cdef void rh_read_particles(char *filename, particle **p, np.int64_t *num_p) noe
     if rh.particle_type not in ds.particle_types and rh.particle_type != 'all':
         ds.add_particle_filter(rh.particle_type)
 
-    use_ptype = len(rh.star_types) > 0 and \
-        (rh.particle_type, "particle_type") in ds.derived_field_list
+    use_ptype = (
+        (len(rh.star_types) > 0 or len(rh.gas_types) > 0) and
+        (rh.particle_type, "particle_family") in ds.derived_field_list
+    )
+
+    # Needed to correctly chunk the data when using tracers
+    if len(rh.gas_types) > 0:
+        chunking_style = "io"
+    else:
+        chunking_style = "io"
 
     # First we need to find out how many this reader is going to read in
     # if the number of readers > 1.
@@ -295,6 +304,8 @@ cdef void rh_read_particles(char *filename, particle **p, np.int64_t *num_p) noe
     else:
         local_parts = TOTAL_PARTICLES
 
+    print("Reading %d particles from %s" % (local_parts, filename))
+
     p[0] = <particle *> malloc(sizeof(particle) * local_parts)
 
     dle = ds.domain_left_edge.to('Mpccm/h')
@@ -304,14 +315,14 @@ cdef void rh_read_particles(char *filename, particle **p, np.int64_t *num_p) noe
     left_edge[3] = left_edge[4] = left_edge[5] = 0.0
     pi = 0
     # Now we want to grab data from only a subset of the grids for each reader.
-    for chunk in parallel_objects(dd.chunks([], "io")):
+    for chunk in parallel_objects(dd.chunks([], chunking_style)):
         arri = np.asarray(chunk[rh.particle_type, "particle_index"], dtype="int64")
         marr = chunk[rh.particle_type, rh.mass_field].to("Msun/h").astype("float64")
         # earr = chunk[rh.particle_type, "particle_"].to("").astype("float64")
         # sarr = chunk[rh.particle_type, "particle_"].to("").astype("float64")
         # mtarr= chunk[rh.particle_type, "particle_"].to("").astype("float64")
         if use_ptype:
-            tarr = np.asarray(chunk[rh.particle_type, "particle_type"], dtype="int32")
+            tarr = np.asarray(chunk[rh.particle_type, "particle_family"], dtype="int32")
         npart = arri.size
         for i in range(npart):
             p[0][i+pi].id = <np.int64_t> arri[i]
@@ -321,15 +332,17 @@ cdef void rh_read_particles(char *filename, particle **p, np.int64_t *num_p) noe
             # p[0][i+pi].metallicity = <np.float64_t> mtarr[i]
             if use_ptype and tarr[i] in rh.star_types:
                 type = 2
+            elif use_ptype and tarr[i] in rh.gas_types:
+                type = 1
             else:
                 type = 0
             p[0][i+pi].type = <np.int32_t> type
 
         fi = 0
-        for field in ["particle_position_x", "particle_position_y",
-                      "particle_position_z",
-                      "particle_velocity_x", "particle_velocity_y",
-                      "particle_velocity_z"]:
+        for field in [rh.position_field + "_x", rh.position_field + "_y",
+                      rh.position_field + "_z",
+                      rh.velocity_field + "_x", rh.velocity_field + "_y",
+                      rh.velocity_field + "_z"]:
             if "position" in field:
                 unit = "Mpccm/h"
             else:
@@ -340,6 +353,21 @@ cdef void rh_read_particles(char *filename, particle **p, np.int64_t *num_p) noe
             fi += 1
         pi += npart
     num_p[0] = local_parts
+
+    cdef int dm_count = 0
+    cdef int star_count = 0
+    cdef int gas_count = 0
+    for i in range(local_parts):
+        if p[0][i].type == 0:
+            dm_count += 1
+        elif p[0][i].type == 2:
+            star_count += 1
+        elif p[0][i].type == 1:
+            gas_count += 1
+
+    print("Read in %d particles: %d DM, %d stars, %d gas." % 
+          (local_parts, dm_count, star_count, gas_count))
+
     del ds
 
 cdef class RockstarInterface:
@@ -353,7 +381,10 @@ cdef class RockstarInterface:
     cdef public int block_ratio
     cdef public object particle_type
     cdef public object mass_field
+    cdef public object position_field
+    cdef public object velocity_field
     cdef public object star_types
+    cdef public object gas_types
     cdef public np.int64_t total_particles
     cdef public object callbacks
 
@@ -363,7 +394,7 @@ cdef class RockstarInterface:
 
     def setup_rockstar(self, char *server_address, char *server_port,
                        int num_snaps, np.int64_t total_particles,
-                       particle_type, mass_field, star_types,
+                       particle_type, mass_field, position_field, velocity_field, star_types, gas_types,
                        np.float64_t particle_mass,
                        int parallel = False, int num_readers = 1,
                        int num_writers = 1,
@@ -374,12 +405,12 @@ cdef class RockstarInterface:
                        non_dm_metric_scaling = 10,
                        int suppress_galaxies = 1,
                        callbacks = None, int restart_num = 0,
-                       int periodic = 1, int min_halo_size = 25,):
+                       int periodic = 1, int min_halo_size = 25, int min_halo_mass = 0):
         global PARALLEL_IO, PARALLEL_IO_SERVER_ADDRESS, PARALLEL_IO_SERVER_PORT
         global FILENAME, FILE_FORMAT, NUM_SNAPS, STARTING_SNAP, h0, Ol, Om
         global BOX_SIZE, PERIODIC, PARTICLE_MASS, NUM_BLOCKS, NUM_READERS
         global FORK_READERS_FROM_WRITERS, PARALLEL_IO_WRITER_PORT, NUM_WRITERS
-        global rh, SCALE_NOW, OUTBASE, MIN_HALO_OUTPUT_SIZE,
+        global rh, SCALE_NOW, OUTBASE, MIN_HALO_OUTPUT_SIZE, MIN_HALO_OUTPUT_MASS
         global OVERLAP_LENGTH, TOTAL_PARTICLES, FORCE_RES, RESTART_SNAP
         global INITIAL_METRIC_SCALING, NON_DM_METRIC_SCALING, SUPPRESS_GALAXIES
 
@@ -408,11 +439,15 @@ cdef class RockstarInterface:
         NUM_WRITERS = num_writers
         NUM_BLOCKS = num_readers
         MIN_HALO_OUTPUT_SIZE=min_halo_size
+        MIN_HALO_OUTPUT_MASS=min_halo_mass
         TOTAL_PARTICLES = total_particles
         self.block_ratio = block_ratio
         self.particle_type = particle_type
         self.mass_field = mass_field
+        self.position_field = position_field
+        self.velocity_field = velocity_field
         self.star_types = star_types
+        self.gas_types = gas_types
 
         tds = self.ts[0]
         h0 = tds.hubble_constant
