@@ -14,7 +14,7 @@ repos:
   - id: check-toml
 
 - repo: https://github.com/psf/black
-  rev: 24.10.0
+  rev: 25.1.0
   hooks:
   - id: black
 
@@ -25,7 +25,7 @@ repos:
     additional_dependencies: [black==23.9.1]
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.8.6
+  rev: v0.12.2
   hooks:
   - id: ruff
     args: [--fix, --show-fixes]
