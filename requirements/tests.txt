@@ -5,3 +5,8 @@ scipy
 # test dependencies
 pytest
 girder-client
+
+# tmp: girder-client 3.2.8 has an undeclared runtime dependency on setuptools
+# but it's already patched upstream
+# https://github.com/girder/girder/pull/3696
+setuptools<81
