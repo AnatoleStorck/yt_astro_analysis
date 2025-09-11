@@ -41,6 +41,7 @@ dependencies = [
     "yt>=4.0.1",
     "numpy>=1.19.3, <3",
     "packaging>=20.9",
+    "setuptools>=61.2, <81"
 ]
 
 [project.readme]
