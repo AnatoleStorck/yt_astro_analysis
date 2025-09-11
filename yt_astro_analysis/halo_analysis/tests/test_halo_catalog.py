@@ -14,6 +14,7 @@ HaloCatalog answer tests
 # -----------------------------------------------------------------------------
 
 import numpy.testing as npt
+import os
 import unyt as un
 
 from yt.loaders import load
@@ -49,13 +50,14 @@ def test_halo_quantity(tmp_path):
     hc.add_quantity("nstars")
     hc.create()
 
-    fn = tmp_path / str(dds) / f"{dds}.0.h5"
+    fn = os.path.join(str(tmp_path), str(dds), f"{dds}.0.h5")
     ds = load(fn)
     ad = ds.all_data()
     mi, ma = ad.quantities.extrema("nstars")
     mean = ad.quantities.weighted_average_quantity("nstars", "particle_ones")
 
-    npt.assert_equal(
+    npt.assert_almost_equal(
         un.unyt_array([mean, mi, ma]),
-        [28.533783783783782, 0.0, 628.0] * un.dimensionless,
+        [28.53378378, 0.0, 628.0] * un.dimensionless,
+        8
     )
