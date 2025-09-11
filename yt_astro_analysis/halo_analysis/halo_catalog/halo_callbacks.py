@@ -12,7 +12,6 @@ import numpy as np
 from yt.data_objects.profiles import create_profile
 from yt.frontends.ytdata.utilities import _hdf5_yt_array, _yt_array_hdf5
 from yt.units.yt_array import YTArray
-from yt.utilities.exceptions import YTSphereTooSmall
 from yt.utilities.logger import ytLogger as mylog
 from yt.utilities.on_demand_imports import _h5py as h5py
 from yt.utilities.parallel_tools.parallel_analysis_interface import parallel_root_only
@@ -62,11 +61,7 @@ def halo_sphere(halo, radius_field="virial_radius", factor=1.0, field_parameters
     if radius <= 0.0:
         halo.data_object = None
         return
-    try:
-        sphere = dds.sphere(center, radius)
-    except YTSphereTooSmall:
-        halo.data_object = None
-        return
+    sphere = dds.sphere(center, radius)
     if field_parameters is not None:
         for field, par in field_parameters.items():
             if isinstance(par, tuple) and par[0] == "quantity":
