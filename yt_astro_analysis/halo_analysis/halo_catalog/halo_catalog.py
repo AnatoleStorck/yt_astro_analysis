@@ -11,6 +11,7 @@ import os
 import numpy as np
 from unyt import unyt_array
 
+from yt.frontends.rockstar.data_structures import RockstarDataset
 from yt.data_objects.time_series import DatasetSeries
 from yt.frontends.ytdata.utilities import save_as_dataset
 from yt.funcs import ensure_dir, mylog
@@ -298,6 +299,10 @@ class HaloCatalog(ParallelAnalysisInterface):
         extra_attrs_d.update(extra_attrs)
 
         with quiet():
+            # Remove the rockstar version number as it is a weird format that
+            # gives hdf5 lots of trouble.
+            if isinstance(ds, RockstarDataset) and "version" in ds.parameters:
+                del ds.parameters["version"]
             save_as_dataset(
                 ds, filename, data, field_types=field_types, extra_attrs=extra_attrs_d
             )
