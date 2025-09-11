@@ -52,6 +52,11 @@ commands:
 
             # install yt_astro_analysis with extra dev dependencies
             python -m pip install .
+            # tmp: build girder client from source with an older setuptools
+            # this shouldn't be necessary, long term
+            # see https://github.com/girder/girder/pull/3717
+            python -m pip install "setuptools<81" setuptools-scm
+            python -m pip install girder-client --no-build-isolation
             python -m pip install --requirement requirements/tests.txt
 
             # configure yt
