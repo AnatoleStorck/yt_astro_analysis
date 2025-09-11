@@ -2,7 +2,7 @@
 requires = [
   "setuptools>=61.2",
   "Cython>=3.0",
-  "numpy>=1.25, <2.0",
+  "numpy>=2.0.0",
 ]
 
 [project]
@@ -39,8 +39,7 @@ requires-python = ">=3.9"
 dependencies = [
     "h5py>=3.1.0",
     "yt>=4.0.1",
-    # upper cap should be lifted when build-time requirement is bumped to >=2.0, see
-    "numpy>=1.19.3, <2.0",
+    "numpy>=1.19.3, <3",
     "packaging>=20.9",
 ]
 
@@ -78,9 +77,13 @@ exclude = '''
 )/
 '''
 
-[tool.ruff]
+[tool.ruff.lint]
 exclude = ["*__init__.py", "*api.py"]
-ignore = ["E501"]
+ignore = [
+  "E501",
+  "NPY002", # numpy-legacy-random (not actually deprecated, and not auto-fixable)
+]
+
 select = [
     "E",
     "F",
@@ -91,9 +94,10 @@ select = [
     "YTT", # flake8-2020
     "I",   # isort
     "UP",  # pyupgrade
+    "NPY", # NumPy-specific rules
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 combine-as-imports = true
 known-third-party = [
   "IPython",

@@ -10,6 +10,8 @@ commands:
             echo 'export ROCKSTAR_DIR=$HOME/rockstar-galaxies' >> $BASH_ENV
             echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ROCKSTAR_DIR' >> $BASH_ENV
             echo 'export YT_DATA=$HOME/yt_test' >> $BASH_ENV
+            echo 'export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe' >> $BASH_ENV
+            echo 'export OMPI_MCA_rmaps_base_oversubscribe=true' >> $BASH_ENV
 
   install-with-yt-dev:
     description: "Install dependencies with yt from source."
@@ -197,16 +199,16 @@ workflows:
    normal-tests:
      jobs:
        - run-tests:
-           name: "Python 3.9 tests"
-           tag: "3.9"
-
-       - run-tests:
            name: "Python 3.10 tests"
            tag: "3.10"
 
+       - run-tests:
+           name: "Python 3.13 tests"
+           tag: "3.13"
+
        - docs-test:
            name: "Test docs build"
-           tag: "3.9"
+           tag: "3.13"
 
    weekly:
      triggers:
@@ -218,8 +220,8 @@ workflows:
                 - main
      jobs:
        - run-tests:
-           name: "Python 3.9 tests"
-           tag: "3.9"
+           name: "Python 3.13 tests"
+           tag: "3.13"
 
        - run-tests:
            name: "Python 3.10 tests"
@@ -227,4 +229,4 @@ workflows:
 
        - docs-test:
            name: "Test docs build"
-           tag: "3.9"
+           tag: "3.13"

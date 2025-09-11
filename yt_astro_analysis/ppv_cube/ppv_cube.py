@@ -39,7 +39,7 @@ def create_vlos(normal, no_shifting):
     elif isinstance(normal, str):
 
         def _v_los(field, data):
-            return -data["gas", "velocity_%s" % normal]
+            return -data["gas", f"velocity_{normal}"]
 
     else:
         orient = Orientation(normal)
@@ -381,13 +381,9 @@ class PPVCube:
         fib.writeto(filename, overwrite=overwrite, **kwargs)
 
     def __repr__(self):
-        return "PPVCube [%d %d %d] (%s < %s < %s)" % (
-            self.nx,
-            self.ny,
-            self.nv,
-            self.vbins[0],
-            fits_info[self.axis_type][2],
-            self.vbins[-1],
+        return (
+            f"PPVCube [{self.nx} {self.ny} {self.nv}] "
+            f"({self.vbins[0]} < {fits_info[self.axis_type][2]} < {self.vbins[-1]})"
         )
 
     def __getitem__(self, item):

@@ -15,7 +15,11 @@ API for Rockstar halo finding
 
 import warnings
 
-from numpy import VisibleDeprecationWarning
+from numpy.exceptions import VisibleDeprecationWarning
+
+from yt_astro_analysis.halo_analysis.halo_finding.rockstar.rockstar import (
+    RockstarHaloFinder,
+)
 
 warnings.warn(
     "Running the RockstarHaloFinder directly is deprecated. "
@@ -25,6 +29,4 @@ warnings.warn(
     stacklevel=2,
 )
 
-from yt_astro_analysis.halo_analysis.halo_finding.rockstar.rockstar import (
-    RockstarHaloFinder,
-)
+__all__ = ["RockstarHaloFinder"]

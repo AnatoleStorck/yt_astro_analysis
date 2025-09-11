@@ -112,7 +112,7 @@ class Halo:
         self._ds_sort = sp_pid.argsort()
         sp_pid = sp_pid[self._ds_sort]
         # This matches them up.
-        self._particle_mask = np.in1d(sp_pid, pid)
+        self._particle_mask = np.isin(sp_pid, pid)
         return self._particle_mask
 
     def center_of_mass(self):
@@ -513,8 +513,7 @@ class Halo:
         te1 = np.cross(te2, e0_vector_copy)
         length = np.abs(
             -np.sum(rr * te1, axis=1)
-            * (1.0 - np.sum(rr * e0_vector_copy, axis=1) ** 2.0 * mag_A**-2.0)
-            ** (-0.5)
+            * (1.0 - np.sum(rr * e0_vector_copy, axis=1) ** 2.0 * mag_A**-2.0) ** (-0.5)
         )
         # This problem apparently happens sometimes, that the NaNs are turned
         # into infs, which messes up the nanargmax below.
@@ -574,7 +573,7 @@ class FOFHalo(Halo):
 
 
 class HaloList:
-    _fields = ["particle_position_%s" % ax for ax in "xyz"]
+    _fields = [f"particle_position_{ax}" for ax in "xyz"]
 
     def __init__(self, data_source, redshift=-1, ptype="all"):
         """
@@ -628,7 +627,7 @@ class HaloList:
             )
             md_i = np.argmax(dens[cp:cp_c])
             px, py, pz = (
-                self.particle_fields["particle_position_%s" % ax][group_indices]
+                self.particle_fields[f"particle_position_{ax}"][group_indices]
                 for ax in "xyz"
             )
             self._max_dens[i] = (dens[cp:cp_c][md_i], px[md_i], py[md_i], pz[md_i])
@@ -652,7 +651,7 @@ class HOPHaloList(HaloList):
 
     _name = "HOP"
     _halo_class = HOPHalo
-    _fields = ["particle_position_%s" % ax for ax in "xyz"] + ["particle_mass"]
+    _fields = [f"particle_position_{ax}" for ax in "xyz"] + ["particle_mass"]
 
     def __init__(self, data_source, threshold=160.0, ptype="all"):
         self.threshold = threshold
@@ -741,7 +740,7 @@ class GenericHaloFinder(HaloList, ParallelAnalysisInterface):
         LE, RE = bounds
         dw = self.ds.domain_right_edge - self.ds.domain_left_edge
         for i, ax in enumerate("xyz"):
-            arr = self._data_source[self.ptype, "particle_position_%s" % ax]
+            arr = self._data_source[self.ptype, f"particle_position_{ax}"]
             arr[arr < LE[i] - self.padding] += dw[i]
             arr[arr > RE[i] + self.padding] -= dw[i]
 

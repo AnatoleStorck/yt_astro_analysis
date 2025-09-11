@@ -232,12 +232,12 @@ class LightCone(CosmologySplice):
             else:
                 # Same axis and center as previous slice,
                 # but with depth center shifted.
-                self.light_cone_solution[q][
-                    "projection_axis"
-                ] = self.light_cone_solution[q - 1]["projection_axis"]
-                self.light_cone_solution[q][
-                    "projection_center"
-                ] = self.light_cone_solution[q - 1]["projection_center"].copy()
+                self.light_cone_solution[q]["projection_axis"] = (
+                    self.light_cone_solution[q - 1]["projection_axis"]
+                )
+                self.light_cone_solution[q]["projection_center"] = (
+                    self.light_cone_solution[q - 1]["projection_center"].copy()
+                )
                 self.light_cone_solution[q]["projection_center"][
                     self.light_cone_solution[q]["projection_axis"]
                 ] += 0.5 * (
@@ -389,8 +389,7 @@ class LightCone(CosmologySplice):
             if save_slice_images:
                 name = os.path.join(
                     self.output_dir,
-                    "%s_%04d_%04d"
-                    % (self.output_prefix, my_slice, len(self.light_cone_solution)),
+                    f"{self.output_prefix}_{my_slice:04d}_{len(self.light_cone_solution):04d}",
                 )
                 if weight_field is None:
                     my_image = all_storage[my_slice]["field"]
@@ -453,7 +452,7 @@ class LightCone(CosmologySplice):
         mylog.info("Saving light cone solution to %s.", filename)
 
         f = open(filename, "w")
-        f.write("# parameter_filename = %s\n" % self.parameter_filename)
+        f.write(f"# parameter_filename = {self.parameter_filename}\n")
         f.write("\n")
         f.write(
             "# Slice    Dataset    Redshift    depth/box    "
@@ -461,19 +460,12 @@ class LightCone(CosmologySplice):
         )
         for q, output in enumerate(self.light_cone_solution):
             f.write(
-                ("%04d %s %f %f %f %d %f %f %f\n")
-                % (
-                    q,
-                    output["filename"],
-                    output["redshift"],
-                    output["box_depth_fraction"],
-                    output["box_width_per_angle"],
-                    output["projection_axis"],
-                    output["projection_center"][0],
-                    output["projection_center"][1],
-                    output["projection_center"][2],
-                )
+                f"{q:04d} {output['filename']} {output['redshift']} "
+                f"{output['box_depth_fraction']} {output['box_width_per_angle']} "
+                f"{output['projection_axis']} {output['projection_center'][0]} "
+                f"{output['projection_center'][1]} {output['projection_center'][2]}\n"
             )
+
         f.close()
 
     @parallel_root_only
@@ -491,10 +483,10 @@ class LightCone(CosmologySplice):
         )
 
         field_node = f"{field}_{weight_field}"
-        weight_field_node = "weight_field_%s" % weight_field
+        weight_field_node = f"weight_field_{weight_field}"
 
         if filename is None:
-            filename = os.path.join(self.output_dir, "%s_data" % self.output_prefix)
+            filename = os.path.join(self.output_dir, f"{self.output_prefix}_data")
         if not (filename.endswith(".h5")):
             filename += ".h5"
 

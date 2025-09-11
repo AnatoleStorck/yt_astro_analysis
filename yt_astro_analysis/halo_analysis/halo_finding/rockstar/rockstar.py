@@ -92,9 +92,9 @@ class StandardRunner(ParallelAnalysisInterface):
             self.num_writers = min(num_writers, psize)
         if self.num_readers + self.num_writers + 1 != psize:
             raise RuntimeError(
-                "The number of MPI processes (%i) does not equal the "
-                "number of readers (%i) plus the number of writers "
-                "(%i) plus 1 server" % (psize, self.num_readers, self.num_writers)
+                f"The number of MPI processes ({psize}) does not equal the "
+                f"number of readers ({self.num_readers}) plus the number of writers "
+                f"({self.num_writers}) plus 1 server"
             )
 
     def run(self, handler, wg):
@@ -301,7 +301,7 @@ class RockstarHaloFinder(ParallelAnalysisInterface):
         if ptype not in tds.particle_types and ptype != "all":
             has_particle_filter = tds.add_particle_filter(ptype)
             if not has_particle_filter:
-                raise RuntimeError("Particle type (filter) %s not found." % (ptype))
+                raise RuntimeError(f"Particle type (filter) {ptype} not found.")
 
         dd = tds.all_data()
         # Get DM particle mass.
@@ -370,7 +370,7 @@ class RockstarHaloFinder(ParallelAnalysisInterface):
         if restart:
             restart_file = os.path.join(self.outbase, "restart.cfg")
             if not os.path.exists(restart_file):
-                raise RuntimeError("Restart file %s not found" % (restart_file))
+                raise RuntimeError(f"Restart file {restart_file} not found")
             with open(restart_file) as restart_fh:
                 for par in restart_fh:
                     if par.startswith("RESTART_SNAP"):
@@ -380,9 +380,8 @@ class RockstarHaloFinder(ParallelAnalysisInterface):
             if num_writers != self.num_writers:
                 raise RuntimeError(
                     "Number of writers in restart has changed from the original "
-                    "run (OLD = %d, NEW = %d).  To avoid problems in the "
+                    f"run (OLD = {num_writers}, NEW = {self.num_writers}).  To avoid problems in the "
                     "restart, choose the same number of writers."
-                    % (num_writers, self.num_writers)
                 )
             # Remove the datasets that were already analyzed
             self.ts._pre_outputs = self.ts._pre_outputs[restart_num:]
