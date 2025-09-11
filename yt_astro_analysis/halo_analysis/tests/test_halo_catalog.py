@@ -14,28 +14,20 @@ HaloCatalog answer tests
 # -----------------------------------------------------------------------------
 
 import numpy.testing as npt
-import pytest
 import unyt as un
 
 from yt.loaders import load
 from yt.testing import requires_file
 from yt_astro_analysis.halo_analysis import HaloCatalog
-from yt_astro_analysis.halo_analysis.halo_catalog.analysis_operators import (
-    _remove_quantity,
-    add_quantity,
-)
+from yt_astro_analysis.halo_analysis.halo_catalog.analysis_operators import add_quantity
 from yt_astro_analysis.utilities.testing import data_dir_load
 
 
-@pytest.fixture
-def nstars_defined():
-    def _nstars(halo):
-        sp = halo.data_object
-        return (sp["all", "creation_time"] > 0).sum()
+def _nstars(halo):
+    sp = halo.data_object
+    return (sp["all", "creation_time"] > 0).sum()
 
-    add_quantity("nstars", _nstars)
-    yield
-    _remove_quantity("nstars")
+add_quantity("nstars", _nstars)
 
 
 rh0 = "rockstar_halos/halos_0.0.bin"
@@ -44,7 +36,6 @@ e64 = "Enzo_64/DD0043/data0043"
 
 @requires_file(rh0)
 @requires_file(e64)
-@pytest.mark.usefixtures("nstars_defined")
 def test_halo_quantity(tmp_path):
     data_ds_fn = e64
     halos_ds_fn = rh0
