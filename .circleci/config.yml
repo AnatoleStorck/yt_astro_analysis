@@ -67,11 +67,14 @@ commands:
           name: "Download test data."
           no_output_timeout: 20m
           command: |
-            if [ ! -f $YT_DATA/enzo_tiny_cosmology/DD0046/DD0046 ]; then
+            if [ ! -f $YT_DATA/done ]; then
                 source $BASH_ENV
                 source $HOME/venv/bin/activate
                 mkdir -p $YT_DATA
                 girder-cli --api-url https://girder.hub.yt/api/v1 download 577c09480d7c6b0001ad5be2 $YT_DATA/enzo_tiny_cosmology
+                girder-cli --api-url https://girder.hub.yt/api/v1 download 577c046c0d7c6b0001ad53c8 $YT_DATA/Enzo_64
+                girder-cli --api-url https://girder.hub.yt/api/v1 download 577c1c160d7c6b0001ad71db $YT_DATA/rockstar_halos
+                touch $YT_DATA/done
             fi
 
   build-and-test:
@@ -124,42 +127,31 @@ jobs:
 
       - restore_cache:
           name: "Restore dependencies cache."
-          key: python-<< parameters.tag >>-dependencies-bonxie
+          key: python-<< parameters.tag >>-dependencies-abbott
 
       - install-with-yt-dev
 
       - save_cache:
           name: "Save dependencies cache"
-          key: python-<< parameters.tag >>-dependencies-bonxie
+          key: python-<< parameters.tag >>-dependencies-abbott
           paths:
             - ~/.cache/pip
             - ~/venv
-            - ~/yt-git
             - ~/rockstar-galaxies
 
       - restore_cache:
           name: "Restore test data cache."
-          key: test-data-bonxie
+          key: test-data-aardsma
 
       - download-test-data
 
       - save_cache:
           name: "Save test data cache."
-          key: test-data-bonxie
+          key: test-data-aardsma
           paths:
             - ~/yt_test
 
-      - restore_cache:
-          name: "Restore test answers."
-          key: python-<< parameters.tag >>-test-answers-bonxie-pytest
-
       - build-and-test
-
-      - save_cache:
-          name: "Save test answers cache."
-          key: python-<< parameters.tag >>-test-answers-bonxie-pytest
-          paths:
-            - ~/test_results
 
   docs-test:
     parameters:
@@ -178,13 +170,13 @@ jobs:
 
       - restore_cache:
           name: "Restore dependencies cache."
-          key: python-<< parameters.tag >>-dependencies-bonxie
+          key: python-<< parameters.tag >>-dependencies-abbott
 
       - install-with-yt-dev
 
       - save_cache:
           name: "Save dependencies cache"
-          key: python-<< parameters.tag >>-dependencies-bonxie
+          key: python-<< parameters.tag >>-dependencies-abbott
           paths:
             - ~/.cache/pip
             - ~/venv
