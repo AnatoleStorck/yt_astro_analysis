@@ -27,6 +27,7 @@ def _nstars(halo):
     sp = halo.data_object
     return (sp["all", "creation_time"] > 0).sum()
 
+
 add_quantity("nstars", _nstars)
 
 
