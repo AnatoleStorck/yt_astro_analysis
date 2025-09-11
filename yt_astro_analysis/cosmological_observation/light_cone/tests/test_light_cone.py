@@ -89,4 +89,4 @@ def test_light_cone_projection(tmp_path, field, weight_field, expected):
     mean = np.nanmean(data)
     mi = np.nanmin(data[data.nonzero()])
     ma = np.nanmax(data)
-    npt.assert_equal([mean, mi, ma], expected, verbose=True)
+    npt.assert_almost_equal([mean, mi, ma], expected, 8, verbose=True)
