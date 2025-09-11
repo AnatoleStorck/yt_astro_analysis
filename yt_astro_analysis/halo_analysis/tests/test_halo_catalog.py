@@ -13,8 +13,9 @@ HaloCatalog answer tests
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-import numpy.testing as npt
 import os
+
+import numpy.testing as npt
 import unyt as un
 
 from yt.loaders import load
@@ -57,7 +58,5 @@ def test_halo_quantity(tmp_path):
     mean = ad.quantities.weighted_average_quantity("nstars", "particle_ones")
 
     npt.assert_almost_equal(
-        un.unyt_array([mean, mi, ma]),
-        [28.53378378, 0.0, 628.0] * un.dimensionless,
-        8
+        un.unyt_array([mean, mi, ma]), [28.53378378, 0.0, 628.0] * un.dimensionless, 8
     )
