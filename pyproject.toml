@@ -7,7 +7,6 @@ requires = [
 
 [project]
 name = "yt_astro_analysis"
-version = "1.2.dev2"
 description = "yt astrophysical analysis modules extension"
 authors = [
     { name = "The yt project", email = "yt-dev@python.org" },
@@ -41,6 +40,9 @@ dependencies = [
     "yt>=4.0.1",
     "numpy>=1.19.3, <3",
     "packaging>=20.9",
+]
+dynamic = [
+    "version",
 ]
 
 [project.readme]
@@ -80,6 +82,7 @@ exclude = '''
 [tool.ruff.lint]
 exclude = ["*__init__.py", "*api.py"]
 ignore = [
+  "E402",
   "E501",
   "NPY002", # numpy-legacy-random (not actually deprecated, and not auto-fixable)
 ]
@@ -119,3 +122,6 @@ known-first-party = ["yt", "yt_astro_analysis"]
 
 [tool.pytest]
 filterwarnings = ["error"]
+
+[tool.setuptools.dynamic]
+version = {attr = "yt_astro_analysis.__version__"}
