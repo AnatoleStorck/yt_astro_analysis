@@ -291,7 +291,7 @@ class HaloCatalog(ParallelAnalysisInterface):
         mylog.info("Saving %d halos: %s.", n_halos, filename)
 
         if field_types is None:
-            field_types = {key: "." for key in self.quantities}
+            field_types = dict.fromkeys(self.quantities, ".")
 
         if extra_attrs is None:
             extra_attrs = {}
