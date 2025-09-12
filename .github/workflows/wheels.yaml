@@ -8,47 +8,63 @@ on:
   pull_request:
      paths:
        - .github/workflows/wheels.yaml
+       - pyproject.toml
+       - setup.py
+       - setupext.py
   workflow_dispatch:
 
 jobs:
   build_wheels:
-    name: Wheels on ${{ matrix.os }}
+    name: "Wheels on ${{ matrix.os }}: ${{ matrix.archs }} (${{ matrix.select }})"
     runs-on: ${{ matrix.os }}
     strategy:
-      matrix:
-        os: [
-          ubuntu-20.04,
-          windows-2019,
-          macos-12,
-        ]
       fail-fast: false
+      matrix:
+        include:
+        - os: ubuntu-latest
+          archs: x86_64
+          select: '*manylinux*'
+          id: manylinux_x86_64
+        - os: ubuntu-latest
+          archs: x86_64
+          select: '*musllinux*'
+          id: musllinux_x86_64
+        - os: macos-latest
+          archs: x86_64
+          select: '*'
+          id: macos_x86_64
+        - os: macos-latest
+          archs: arm64
+          select: '*'
+          id: macos_arm64
+        - os: windows-latest
+          archs: AMD64
+          select: '*'
+          id: windows_AMD64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build wheels for CPython
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v3.1.4
         with:
           output-dir: dist
         env:
-          CIBW_BUILD: "cp38-* cp39-* cp310-* cp311-* cp312-*"
-          CIBW_SKIP: "*-musllinux_*"  #  numpy doesn't have wheels for musllinux so we can't build some quickly and without bloating
-          CIBW_ARCHS_LINUX: "x86_64"
-          CIBW_ARCHS_MACOS: "x86_64"
-          CIBW_ARCHS_WINDOWS: "auto64"
+          CIBW_ARCHS: ${{ matrix.archs }}
+          CIBW_BUILD: ${{ matrix.select }}
           CIBW_ENVIRONMENT: "LDFLAGS='-static-libstdc++'"
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}
+          name: wheels-${{ matrix.os }}-${{ matrix.id }}
           path: ./dist/*.whl
 
   build_sdist:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build sdist
         run: pipx run build --sdist
@@ -69,15 +85,21 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download sdist
+        uses: actions/download-artifact@v5
         with:
           name: tarball
           path: dist
 
-      - uses: actions/download-artifact@v4
+      - name: Download wheels
+        uses: actions/download-artifact@v5
         with:
           path: dist
           pattern: wheels-*
           merge-multiple: true
 
-      - uses: pypa/gh-action-pypi-publish@v1.12.2
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.12.4
+        with:
+          user: __token__
+          password: ${{ secrets.pypi_token }}
