@@ -3,7 +3,7 @@
 
 [![PyPI version](https://badge.fury.io/py/yt-astro-analysis.svg)](https://badge.fury.io/py/yt-astro-analysis)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/yt-astro-analysis/badges/version.svg)](https://anaconda.org/conda-forge/yt-astro-analysis)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1458961.svg)](https://doi.org/10.5281/zenodo.1458961)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1458960.svg)](https://doi.org/10.5281/zenodo.1458960)
 [![Powered by NumFOCUS](https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org)
 
 [![CircleCI](https://circleci.com/gh/yt-project/yt_astro_analysis.svg?style=svg)](https://circleci.com/gh/yt-project/yt_astro_analysis)
