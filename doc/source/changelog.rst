@@ -13,6 +13,32 @@ The `CREDITS file
 contains the most up-to-date list of everyone who has contributed to the
 yt_astro_analysis source code.
 
+Version 1.1.4
+-------------
+
+Release date: *September 12, 2025*
+
+Minor Enhancements
+^^^^^^^^^^^^^^^^^^
+
+ * RFC: simplify callbacks implementation `PR #234 <https://github.com/yt-project/yt_astro_analysis/pull/234>`__
+ * TST: migrate from nosetest to pytest `PR #238 <https://github.com/yt-project/yt_astro_analysis/pull/238>`__
+
+Infrastructure Updates
+^^^^^^^^^^^^^^^^^^^^^^
+
+ * MNT: bump dev version (->1.2) `PR #240 <https://github.com/yt-project/yt_astro_analysis/pull/240>`__
+ * MNT: group dependabot updates `PR #242 <https://github.com/yt-project/yt_astro_analysis/pull/242>`__
+ * MNT: migrate ruff config `PR #247 <https://github.com/yt-project/yt_astro_analysis/pull/247>`__
+ * Do not use tokens for Pypi uploads `PR #248 <https://github.com/yt-project/yt_astro_analysis/pull/248>`__
+ * DEP: unpin numpy (declare numpy 2.0 compatibility) `PR #255 <https://github.com/yt-project/yt_astro_analysis/pull/255>`__
+ * Fix compilation issue `PR #258 <https://github.com/yt-project/yt_astro_analysis/pull/258>`__
+ * Restore CI `PR #264 <https://github.com/yt-project/yt_astro_analysis/pull/264>`__
+ * Update citation. `PR #274 <https://github.com/yt-project/yt_astro_analysis/pull/274>`__
+
+**Full Changelog**: https://github.com/yt-project/yt_astro_analysis/compare/yt_astro_analysis-1.1.3...yt_astro_analysis-1.1.4
+
+
 Version 1.1.3
 -------------
 
