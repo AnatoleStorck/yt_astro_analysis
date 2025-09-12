@@ -7,13 +7,9 @@ commands:
       - run:
           name:  "Set environment variables."
           command: |
-            echo 'export GOLD_STANDARD=HEAD' >> $BASH_ENV
             echo 'export ROCKSTAR_DIR=$HOME/rockstar-galaxies' >> $BASH_ENV
             echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ROCKSTAR_DIR' >> $BASH_ENV
             echo 'export YT_DATA=$HOME/yt_test' >> $BASH_ENV
-            echo 'export TEST_DIR=$HOME/test_results' >> $BASH_ENV
-            echo 'export TEST_NAME=astro_analysis' >> $BASH_ENV
-            echo 'export TEST_FLAGS="--nologcapture -v --with-answer-testing --local --local-dir $TEST_DIR --answer-name=$TEST_NAME --answer-big-data"' >> $BASH_ENV
             echo 'export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe' >> $BASH_ENV
             echo 'export OMPI_MCA_rmaps_base_oversubscribe=true' >> $BASH_ENV
 
@@ -23,6 +19,7 @@ commands:
       - run:
           name: "Install dependencies with yt from source."
           command: |
+            set -x
             source $BASH_ENV
             sudo apt update
             sudo apt upgrade
@@ -70,37 +67,17 @@ commands:
           name: "Download test data."
           no_output_timeout: 20m
           command: |
-            if [ ! -f $YT_DATA/enzo_tiny_cosmology/DD0046/DD0046 ]; then
+            if [ ! -f $YT_DATA/done ]; then
                 source $BASH_ENV
                 source $HOME/venv/bin/activate
                 mkdir -p $YT_DATA
                 girder-cli --api-url https://girder.hub.yt/api/v1 download 577c09480d7c6b0001ad5be2 $YT_DATA/enzo_tiny_cosmology
+                girder-cli --api-url https://girder.hub.yt/api/v1 download 577c046c0d7c6b0001ad53c8 $YT_DATA/Enzo_64
+                girder-cli --api-url https://girder.hub.yt/api/v1 download 577c1c160d7c6b0001ad71db $YT_DATA/rockstar_halos
+                touch $YT_DATA/done
             fi
 
-  build-and-test-nose:
-    description: "Build yt_astro_analysis and run tests (nose)."
-    steps:
-      - run:
-          name: "Build yt_astro_analysis and run tests."
-          command: |
-            # tag the tip so we can get back there
-            git tag tip
-            source $BASH_ENV
-            source $HOME/venv/bin/activate
-            # generate answers if not cached
-            if [ ! -f ${TEST_DIR}/${TEST_NAME}/${TEST_NAME} ]; then
-              git checkout $GOLD_STANDARD
-              python -m pip install -e .
-              nosetests $TEST_FLAGS --answer-store
-            fi
-            # return to tip and run comparison tests
-            git checkout tip
-            python -m pip install -e .
-            coverage run `which nosetests` $TEST_FLAGS
-            # code coverage report
-            codecov
-
-  build-and-test-pytest:
+  build-and-test:
     description: "Build yt_astro_analysis and run tests (pytest)."
     steps:
       - run:
@@ -109,7 +86,7 @@ commands:
             source $BASH_ENV
             source $HOME/venv/bin/activate
             python -m pip install -e .
-            pytest
+            pytest --color=yes -ra -s
 
   build-docs:
     description: "Test the docs build."
@@ -150,98 +127,31 @@ jobs:
 
       - restore_cache:
           name: "Restore dependencies cache."
-          key: python-<< parameters.tag >>-dependencies-bonxie
+          key: python-<< parameters.tag >>-dependencies-abbott
 
       - install-with-yt-dev
 
       - save_cache:
           name: "Save dependencies cache"
-          key: python-<< parameters.tag >>-dependencies-bonxie
+          key: python-<< parameters.tag >>-dependencies-abbott
           paths:
             - ~/.cache/pip
             - ~/venv
-            - ~/yt-git
             - ~/rockstar-galaxies
 
       - restore_cache:
           name: "Restore test data cache."
-          key: test-data-bonxie
+          key: test-data-aardsma
 
       - download-test-data
 
       - save_cache:
           name: "Save test data cache."
-          key: test-data-bonxie
+          key: test-data-aardsma
           paths:
             - ~/yt_test
 
-      - restore_cache:
-          name: "Restore test answers."
-          key: python-<< parameters.tag >>-test-answers-bonxie
-
-      - build-and-test-nose
-
-      - save_cache:
-          name: "Save test answers cache."
-          key: python-<< parameters.tag >>-test-answers-bonxie
-          paths:
-            - ~/test_results
-
-  run-tests-pytest:
-    # Run a subset of the test suite (yield-based tests are not supported by pytest)
-    # this is necessary to test in Python 3.10+ because it's not compatible with nose
-    parameters:
-      tag:
-        type: string
-        default: latest
-    executor:
-      name: python
-      tag: << parameters.tag >>
-
-    working_directory: ~/yt_astro_analysis
-
-    steps:
-      - checkout
-      - set-env
-
-      - restore_cache:
-          name: "Restore dependencies cache."
-          key: python-<< parameters.tag >>-dependencies-bonxie
-
-      - install-with-yt-dev
-
-      - save_cache:
-          name: "Save dependencies cache"
-          key: python-<< parameters.tag >>-dependencies-bonxie
-          paths:
-            - ~/.cache/pip
-            - ~/venv
-            - ~/yt-git
-            - ~/rockstar-galaxies
-
-      - restore_cache:
-          name: "Restore test data cache."
-          key: test-data-bonxie
-
-      - download-test-data
-
-      - save_cache:
-          name: "Save test data cache."
-          key: test-data-bonxie
-          paths:
-            - ~/yt_test
-
-      - restore_cache:
-          name: "Restore test answers."
-          key: python-<< parameters.tag >>-test-answers-bonxie-pytest
-
-      - build-and-test-pytest
-
-      - save_cache:
-          name: "Save test answers cache."
-          key: python-<< parameters.tag >>-test-answers-bonxie-pytest
-          paths:
-            - ~/test_results
+      - build-and-test
 
   docs-test:
     parameters:
@@ -260,13 +170,13 @@ jobs:
 
       - restore_cache:
           name: "Restore dependencies cache."
-          key: python-<< parameters.tag >>-dependencies-bonxie
+          key: python-<< parameters.tag >>-dependencies-abbott
 
       - install-with-yt-dev
 
       - save_cache:
           name: "Save dependencies cache"
-          key: python-<< parameters.tag >>-dependencies-bonxie
+          key: python-<< parameters.tag >>-dependencies-abbott
           paths:
             - ~/.cache/pip
             - ~/venv
@@ -284,13 +194,9 @@ workflows:
            name: "Python 3.10 tests"
            tag: "3.10"
 
-       - run-tests-pytest:
+       - run-tests:
            name: "Python 3.13 tests"
            tag: "3.13"
-
-       - run-tests-pytest:
-           name: "Python 3.12 tests"
-           tag: "3.12"
 
        - docs-test:
            name: "Test docs build"
@@ -309,9 +215,9 @@ workflows:
            name: "Python 3.13 tests"
            tag: "3.13"
 
-       - run-tests-pytest:
-           name: "Python 3.13 tests"
-           tag: "3.13"
+       - run-tests:
+           name: "Python 3.10 tests"
+           tag: "3.10"
 
        - docs-test:
            name: "Test docs build"

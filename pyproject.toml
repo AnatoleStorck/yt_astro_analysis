@@ -101,7 +101,6 @@ select = [
 combine-as-imports = true
 known-third-party = [
   "IPython",
-  "pynose",
   "numpy",
   "sympy",
   "matplotlib",
