@@ -19,24 +19,43 @@ BbTeX entries are provided below:
 
 ::
 
-  @misc{yt.astro.analysis,
+  @software{yt.astro.analysis,
     author       = {Britton Smith and
                     Matthew Turk and
                     John ZuHone and
-                    Nathan Goldbaum and
+                    Clément Robert and
+                    Stephen Skory and
                     Cameron Hummels and
-                    Hilary Egan and
+                    Andrew Myers and
+                    Kacper Kowalik and
+                    eganhila and
+                    Sam Skillman and
+                    Michael S. Warren and
+                    Corentin Cadiou and
+                    gsiisg and
                     John Wise and
+                    madcpf and
+                    Sam Leitner and
                     Anthony Scopatz and
                     Miguel de Val-Borro and
+                    Casey W. Stark and
+                    Meng-Yuan, Ho and
                     Ben Keller and
+                    Bili Dong and
                     Mark Richardson and
-                    Clément Robert},
-    title        = {yt_astro_analysis version 1.1.2},
-    month        = jan,
-    year         = 2022,
-    doi          = {10.5281/zenodo.5911048},
-    url          = {https://doi.org/10.5281/zenodo.5911048}
+                    Matthew Scott Krafczyk and
+                    Nathan Goldbaum and
+                    Sriram Sankar and
+                    stonnes},
+    title        = {yt-project/yt\_astro\_analysis:
+                     yt\_astro\_analysis-1.1.3
+                    },
+    month        = oct,
+    year         = 2023,
+    publisher    = {Zenodo},
+    version      = {yt\_astro\_analysis-1.1.3},
+    doi          = {10.5281/zenodo.8431185},
+    url          = {https://doi.org/10.5281/zenodo.8431185},
   }
 
   @ARTICLE{yt,
