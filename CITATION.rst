@@ -28,18 +28,18 @@ BbTeX entries are provided below:
                     Cameron Hummels and
                     Andrew Myers and
                     Kacper Kowalik and
+                    Corentin Cadiou and
                     eganhila and
                     Sam Skillman and
                     Michael S. Warren and
-                    Corentin Cadiou and
-                    gsiisg and
                     John Wise and
+                    gsiisg and
                     madcpf and
                     Sam Leitner and
                     Anthony Scopatz and
                     Miguel de Val-Borro and
                     Casey W. Stark and
-                    Meng-Yuan, Ho and
+                    Ho, Meng-Yuan and
                     Ben Keller and
                     Bili Dong and
                     Mark Richardson and
@@ -47,15 +47,15 @@ BbTeX entries are provided below:
                     Nathan Goldbaum and
                     Sriram Sankar and
                     stonnes},
-    title        = {yt-project/yt\_astro\_analysis:
-                     yt\_astro\_analysis-1.1.3
+    title        = {yt-project/yt\_astro\_analysis: yt\_astro\_analysis
+                     1.1.4 Release
                     },
-    month        = oct,
-    year         = 2023,
+    month        = sep,
+    year         = 2025,
     publisher    = {Zenodo},
-    version      = {yt\_astro\_analysis-1.1.3},
-    doi          = {10.5281/zenodo.8431185},
-    url          = {https://doi.org/10.5281/zenodo.8431185},
+    version      = {yt\_astro\_analysis-1.1.4},
+    doi          = {10.5281/zenodo.17106789},
+    url          = {https://doi.org/10.5281/zenodo.17106789},
   }
 
   @ARTICLE{yt,
