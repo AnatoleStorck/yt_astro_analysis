@@ -53,18 +53,33 @@ ctypedef struct particleflat:
 cdef import from "halo.h":
     struct halo:
         np.int64_t id
-        float pos[6]
-        float corevel[3]
-        float bulkvel[3]
+        float pos[6], corevel[3], bulkvel[3]
+        float m, r, child_r, vmax_r, mgrav, vmax, rvmax, rs, klypin_rs, vrms
         float J[3]
-        float m, r, child_r, mgrav, vmax, rvmax, rs, vrms, energy, spin
+        float energy, spin
+        float alt_m[4]
+        float Xoff, Voff, b_to_a, c_to_a
+        float A[3]
+        float b_to_a2, c_to_a2
+        float A2[3],
+        float bullock_spin, kin_to_pot, m_pe_b, m_pe_d
         np.int64_t num_p, num_child_particles, p_start, desc, flags, n_core
         float min_pos_err, min_vel_err, min_bulkvel_err
+
         np.int32_t type
+        float sm, gas, bh, peak_density, av_density
+
+cdef import from "potential.h":
+    struct potential:
+        float pos[6]
+        float r2, mass, energy
+        np.float64_t pe
+        float ke
+        np.int32_t flags, type
 
 cdef import from "io_generic.h":
     ctypedef void (*LPG) (char *filename, particle **p, np.int64_t *num_p)
-    ctypedef void (*AHG) (halo *h, particle *hp)
+    ctypedef void (*AHG) (halo *h, potential*p, np.int64_t num_p)
     void set_load_particles_generic(LPG func, AHG afunc)
 
 cdef import from "rockstar.h":
@@ -180,14 +195,70 @@ cdef import from "config_vars.h":
 # Forward declare
 cdef class RockstarInterface
 
-cdef void rh_analyze_halo(halo *h, particle *hp) noexcept:
+cdef void rh_analyze_halo(halo *h, potential *p, np.int64_t num_p) noexcept:
     # I don't know why, but sometimes we get halos with 0 particles.
     if h.num_p == 0: return
-    cdef particleflat[:] pslice
-    pslice = <particleflat[:h.num_p]> (<particleflat *>hp)
-    parray = np.asarray(pslice)
+
+    cdef dict halo_data = {
+        "id": h.id,
+        "pos": np.asarray(h.pos),
+        "corevel": np.asarray(h.corevel),
+        "bulkvel": np.asarray(h.bulkvel),
+        "m": h.m,
+        "r": h.r,
+        "child_r": h.child_r,
+        "vmax_r": h.vmax_r,
+        "mgrav": h.mgrav,
+        "vmax": h.vmax,
+        "rvmax": h.rvmax,
+        "rs": h.rs,
+        "klypin_rs": h.klypin_rs,
+        "vrms": h.vrms,
+        "J": h.J,
+        "energy": h.energy,
+        "spin": h.spin,
+        "alt_m": np.asarray(h.alt_m),
+        "Xoff": np.asarray(h.Xoff),
+        "Voff": np.asarray(h.Voff),
+        "b_to_a": h.b_to_a,
+        "c_to_a": h.c_to_a,
+        "A": np.asarray(h.A),
+        "b_to_a2": h.b_to_a2,
+        "c_to_a2": h.c_to_a2,
+        "A2": np.asarray(h.A2),
+        "bullock_spin": h.bullock_spin,
+        "kin_to_pot": h.kin_to_pot,
+        "m_pe_b": h.m_pe_b,
+        "m_pe_d": h.m_pe_d,
+        "num_p": h.num_p,
+        "num_child_particles": h.num_child_particles,
+        "p_start": h.p_start,
+        "desc": h.desc,
+        "flags": h.flags,
+        "n_core": h.n_core,
+        "min_pos_err": h.min_pos_err,
+        "min_vel_err": h.min_vel_err,
+        "min_bulkvel_err": h.min_bulkvel_err,
+        "type": h.type,
+        "sm": h.sm,
+        "gas": h.gas,
+        "bh": h.bh,
+        "peak_density": h.peak_density,
+        "av_density": h.av_density,
+    }
+    cdef dict potential_data = {
+        "pos": np.asarray(p.pos),
+        "r2": p.r2,
+        "mass": p.mass,
+        "energy": p.energy,
+        "pe": p.pe,
+        "ke": p.ke,
+        "flags": p.flags,
+        "type": p.type,
+    }
+
     for cb in rh.callbacks:
-        cb(rh.ds, parray)
+        cb(rh.ds, halo_data, potential_data)
     # This is where we call our functions
 
 cdef void rh_read_particles(char *filename, particle **p, np.int64_t *num_p) noexcept:
